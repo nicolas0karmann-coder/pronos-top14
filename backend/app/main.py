@@ -161,9 +161,10 @@ def statut():
     infos = []
     for year, n in sorted(ds.supplemented.items()):
         infos.append(
-            f"Saison {data_mod.season_label(year)} : {n} matchs absents ou incomplets dans la source principale ont été "
-            "complétés depuis la grille de résultats de Wikipédia. Leurs essais sont reconstitués à partir "
-            "du score et des totaux officiels de la saison."
+            f"Saison {data_mod.season_label(year)} : {n} matchs absents ou incomplets dans la source principale "
+            "ont été complétés (scores Wikipédia, calendrier officiel LNR, fiches de match RugbyPass pour les "
+            "phases finales). Pour la saison régulière, les essais de ces matchs sont reconstitués à partir du "
+            "score et des totaux officiels de la saison."
         )
     for year in {m.season for m in ds.matches}:
         if year >= state.season:

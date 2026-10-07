@@ -202,7 +202,7 @@ async function runMatch() {
       <div class="buckets">${BUCKETS.map(([k, , c]) => `<div class="${c}" style="height:${(p.margin_buckets[k] / maxB * 100).toFixed(1)}%"><span>${pctFine(p.margin_buckets[k])}</span></div>`).join("")}</div>
       <div class="bucket-labels">${BUCKETS.map((b) => `<span>${b[1]}</span>`).join("")}</div>
       <h3>Dernières confrontations</h3>
-      ${p.head_to_head.length ? `<ul class="h2h">${p.head_to_head.map((m) => `<li><span>${m.date_approx ? "Printemps 2026" : dayFmt.format(new Date(m.date))}${m.knockout ? " (phase finale)" : ""}</span><span>${esc(m.home)} ${m.home_score} – ${m.away_score} ${esc(m.away)}</span></li>`).join("")}</ul>` : `<p class="muted">Aucune confrontation dans l'historique disponible.</p>`}
+      ${p.head_to_head.length ? `<ul class="h2h">${p.head_to_head.map((m) => `<li><span>${dayFmt.format(new Date(m.date))}${m.knockout ? " (phase finale)" : ""}</span><span>${esc(m.home)} ${m.home_score} – ${m.away_score} ${esc(m.away)}</span></li>`).join("")}</ul>` : `<p class="muted">Aucune confrontation dans l'historique disponible.</p>`}
     </div>`;
   } catch (e) {
     out.innerHTML = `<p class="error">${esc(e.message)}</p>`;

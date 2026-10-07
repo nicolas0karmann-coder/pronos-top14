@@ -93,10 +93,9 @@ class Match:
     # nombre d'essais même quand le détail est incomplet (pour les bonus)
     home_tries_any: int | None = None
     away_tries_any: int | None = None
-    # match issu d'un complément (cf. app/supplements) : essais reconstitués,
-    # date éventuellement approximative
+    # match issu d'un complément (cf. app/supplements) dont les essais sont
+    # reconstitués à partir du score (et non relevés sur la feuille de match)
     reconstructed: bool = False
-    date_approx: bool = False
     stadium: str | None = None
 
     @property
@@ -121,7 +120,6 @@ class Match:
             "knockout": self.knockout,
             "stadium": self.stadium,
             "reconstructed": self.reconstructed,
-            "date_approx": self.date_approx,
         }
 
 
@@ -157,7 +155,7 @@ def _parse_date(raw: str, start_year: int) -> datetime:
 def _count_tries(side: dict):
     events = side.get("scores") or []
     if not events:
-        return None
+        return 0 if side.get("score") == 0 else None  # 0 point : forcément 0 essai
     n = sum(1 for e in events if "try" in (e.get("type") or "").lower() and (e.get("value") or 0) > 0)
     return n if side.get("score") is not None and 5 * n <= side["score"] else None
 
@@ -166,6 +164,8 @@ def _score_detail(side: dict):
     """(essais, transformations, coups de pied réussis) ou None si le détail
     est absent ou ne retombe pas sur le score final."""
     events = side.get("scores") or []
+    if side.get("score") == 0 and not events:
+        return 0, 0, 0
     if not events or side.get("score") is None:
         return None
     tries = conv = kicks = total = 0
@@ -279,23 +279,29 @@ def apply_supplement(matches: list[Match], start_year: int) -> int:
     if not path.exists():
         return 0
     sup = json.loads(path.read_text(encoding="utf-8"))
-    by_pair = {(m.home, m.away): m for m in matches if not m.knockout}
+    league = {(m.home, m.away): m for m in matches if not m.knockout}
+    knockouts = {(m.home, m.away) for m in matches if m.knockout and m.played}
     used = 0
     for s in sup["matches"]:
-        m = by_pair.get((s["home"], s["away"]))
+        ko = s.get("knockout", False)
+        recon = s.get("tries_reconstructed", True)
+        if ko:
+            if (s["home"], s["away"]) in knockouts:
+                continue  # la source a déjà ce match de phase finale
+            m = None
+        else:
+            m = league.get((s["home"], s["away"]))
         if m is None:
             m = Match(
                 season=start_year,
                 date=datetime.fromisoformat(s["date"].replace("Z", "+00:00")),
                 round=s.get("round"), home=s["home"], away=s["away"],
-                knockout=False, neutral=False,
-                reconstructed=True, date_approx=s.get("date_approx", False),
+                knockout=ko, neutral=s.get("neutral", False),
             )
             matches.append(m)
         elif m.played and m.has_detail:
             continue  # la source est complète pour ce match
-        else:
-            m.reconstructed = True
+        m.reconstructed = recon
         if m.home_score is None:
             m.home_score, m.away_score = s["home_score"], s["away_score"]
         if m.home_tries is None or m.away_tries is None:
@@ -304,6 +310,7 @@ def apply_supplement(matches: list[Match], start_year: int) -> int:
         if m.home_tries_any is None or m.away_tries_any is None:
             m.home_tries_any, m.away_tries_any = s["home_tries"], s["away_tries"]
         used += 1
+    matches.sort(key=lambda x: x.date)
     return used
 
 

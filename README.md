@@ -59,13 +59,13 @@ Barème utilisé : victoire 4, nul 2. Bonus offensif pour une victoire avec au m
 
 ## Performances (backtest)
 
-Pour chaque journée des saisons 2022-23 à 2026-27, le modèle est entraîné uniquement sur les matchs joués avant, puis comparé aux résultats. Cela représente 693 matchs de saison régulière. Pour la log-loss, plus bas = mieux.
+Pour chaque journée des saisons 2022-23 à 2026-27, le modèle est entraîné uniquement sur les matchs joués avant, puis comparé aux résultats. Cela représente 763 matchs de saison régulière. Pour la log-loss, plus bas = mieux.
 
 | Méthode | Log-loss | Brier | Bon vainqueur | Erreur moyenne sur l'écart |
 |---|---|---|---|---|
-| Fréquences moyennes (toujours ~76 % domicile) | 0,628 | 0,376 | 75,9 % | 12,1 pts |
-| Elo en points d'écart | 0,610 | 0,362 | 76,5 % | 11,2 pts |
-| **Modèle de l'app** | **0,598** | **0,353** | **77,2 %** | **11,0 pts** |
+| Fréquences moyennes (toujours ~75 % domicile) | 0,643 | 0,390 | 74,6 % | 12,7 pts |
+| Elo en points d'écart | 0,606 | 0,361 | 76,4 % | 11,5 pts |
+| **Modèle de l'app** | **0,599** | **0,356** | **76,5 %** | **11,3 pts** |
 
 Relancer le backtest : `python -m app.backtest` (depuis `backend`, environ 30 secondes).
 
@@ -73,13 +73,16 @@ Les réglages (demi-vie, rétrécissement) ont été choisis sur ce même backte
 
 ## Limites connues
 
-- **Saison 2025-26 complétée** : la source principale s'arrête mi-février 2026 (112 matchs sur 182). Les 70 matchs manquants viennent de la grille de résultats de Wikipédia, stockée dans `backend/app/supplements/top14-2025-2026.json`. Pour les vérifier :
-  - la grille concorde à 100 % avec les 112 matchs que la source connaît ;
-  - le classement recalculé retrouve les points officiels de 11 équipes sur 14.
+- **Saison 2025-26 complétée** : la source principale s'arrête mi-février 2026 (112 matchs sur 182). Le complément `backend/app/supplements/top14-2025-2026.json` apporte le reste :
+  - les **scores** de saison régulière viennent de la grille de résultats de Wikipédia, qui concorde à 100 % avec les 112 matchs connus ;
+  - les **journées et dates** viennent du calendrier officiel LNR 2025-26 (le samedi de chaque journée sert de date) ;
+  - les **5 matchs de phases finales** (barrages, demi-finales, finale Toulouse 28-20 Montpellier) viennent des fiches de match RugbyPass, avec le détail réel des essais, transformations et pénalités.
 
-  La grille ne donne pas les essais : ils sont reconstitués (décomposition la plus probable de chaque score), avec la contrainte de retomber exactement sur les totaux officiels d'essais marqués et encaissés de chaque équipe. Les bonus offensifs retombent eux aussi sur les chiffres officiels, à une unité près. Les dates des journées 18 à 26 étant inconnues, ces matchs sont datés du 18 avril 2026 ; ils servent à l'entraînement mais pas au backtest. Les phases finales 2025-26 ne sont pas incluses. Effet mesuré sur les 35 matchs joués de 2026-27 : log-loss de 0,492 à 0,482. Si la source principale se complète un jour, elle reprend automatiquement la priorité.
+  Pour les 70 matchs de saison régulière ajoutés, les essais ne sont pas publiés : ils sont reconstitués (décomposition la plus probable de chaque score). La reconstitution retombe **exactement** sur les totaux officiels des 14 équipes : essais marqués, essais encaissés et bonus offensifs. Le classement recalculé retrouve les points officiels de 12 équipes sur 14. Les deux écarts viennent du classement officiel lui-même : 2 points de moins pour Toulouse (probablement une sanction) et un bonus défensif d'écart pour Lyon dans le tableau Wikipédia.
+
+  Le match d'accession (Perpignan contre un club de Pro D2) n'est pas inclus. Si la source principale se complète un jour, elle reprend automatiquement la priorité.
 - **Saisons absentes** : 2016-17, 2019-20 et 2020-21 (Covid). L'historique détaillé (essais) commence en 2014-15.
-- **Biais résiduel** : en backtest, l'équipe qui reçoit marque en moyenne 1,2 point de plus que prévu. Les victoires à domicile entre 60 et 80 % de probabilité prévue arrivent en réalité un peu plus souvent (77 % observé). Les bonus défensifs sont sous-estimés (12 % prévu contre 16 % observé).
+- **Biais résiduel** : en backtest, l'équipe qui reçoit marque en moyenne 0,7 point de plus que prévu. Les victoires à domicile entre 60 et 80 % de probabilité prévue arrivent en réalité un peu plus souvent (77 % observé). Les bonus défensifs sont sous-estimés (12 % prévu contre 16 % observé).
 - **Phases finales** : la projection s'arrête à la fin de la saison régulière. Les barrages, demi-finales et finale ne sont pas simulés, mais l'onglet « Match au choix » permet de pronostiquer une affiche sur terrain neutre.
 - **Départage au classement** : points, puis différence de points, puis essais. Le règlement officiel commence par les confrontations directes ; l'ordre peut donc différer en cas d'égalité de points.
 - Le modèle ne connaît ni les compositions, ni les blessures, ni les doublons internationaux, ni les matchs où un club fait tourner son effectif.

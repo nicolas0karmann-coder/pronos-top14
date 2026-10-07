@@ -27,8 +27,7 @@ def outcome(m):
 def rounds_of(ds, season):
     by_round = defaultdict(list)
     for m in ds.season(season):
-        # les matchs à date approximative servent à l'entraînement, pas au test
-        if m.played and not m.knockout and not m.date_approx:
+        if m.played and not m.knockout:
             by_round[m.round].append(m)
     return [by_round[r] for r in sorted(by_round)]
 
@@ -100,7 +99,7 @@ def bonus_metrics(preds):
     obs_d = exp_d = 0.0
     n = 0
     for m, p in preds:
-        if not m.has_detail or "bonus" not in p:
+        if not m.has_detail or m.reconstructed or "bonus" not in p:
             continue
         b = p["bonus"]
         for side in ("home", "away"):

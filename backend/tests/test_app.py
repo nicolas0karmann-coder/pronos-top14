@@ -80,12 +80,24 @@ def test_index():
 
 def test_complement_2025_26(ds):
     """La saison 2025-26 complétée doit compter ses 182 matchs, et le classement
-    recalculé doit retrouver les points officiels (hors Toulouse, Montpellier
-    et Lyon : sanction ou bonus incertain, cf. README)."""
+    recalculé doit retrouver les points officiels (hors Toulouse et Lyon :
+    écarts propres au classement officiel, cf. README)."""
     s = [m for m in ds.season(2025) if m.played and not m.knockout]
     assert len(s) == 182
-    official = {"Stade Français": 79, "Pau": 78, "Racing 92": 74, "La Rochelle": 72, "Clermont": 71,
+    official = {"Montpellier": 82, "Stade Français": 79, "Pau": 78, "Racing 92": 74, "La Rochelle": 72, "Clermont": 71,
                 "Bordeaux-Bègles": 70, "Toulon": 59, "Castres": 55, "Bayonne": 51, "Perpignan": 29,
                 "Montauban": 7}
     pts = {r["team"]: r["points"] for r in standings(ds.season(2025), ds.teams(2025))}
     assert {k: pts[k] for k in official} == official
+
+
+def test_phases_finales_2025_26(ds):
+    ko = [m for m in ds.season(2025) if m.knockout]
+    assert len(ko) == 5
+    final = max(ko, key=lambda m: m.date)
+    assert (final.home, final.home_score, final.away_score, final.away) == ("Toulouse", 28, 20, "Montpellier")
+    assert final.neutral and final.home_tries == 3
+    # toutes les journées sont datées et complètes
+    from collections import Counter
+    rounds = Counter(m.round for m in ds.season(2025) if not m.knockout)
+    assert sorted(rounds) == list(range(1, 27)) and set(rounds.values()) == {7}
