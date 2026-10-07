@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pronos Top 14</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Big+Shoulders+Display:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>Pronos Top 14</h1>
+      <p id="seasonLine" class="muted">Chargement des données…</p>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" data-view="journee" aria-selected="true">Journée</button>
+      <button role="tab" data-view="classement" aria-selected="false">Classement</button>
+      <button role="tab" data-view="projection" aria-selected="false">Fin de saison</button>
+      <button role="tab" data-view="match" aria-selected="false">Match au choix</button>
+      <button role="tab" data-view="forces" aria-selected="false">Forces</button>
+    </nav>
+  </header>
+
+  <p id="slowHint" class="slow-hint" role="status" hidden>Le serveur se réveille et télécharge les données, cela peut prendre jusqu'à une minute.</p>
+  <div id="warnings" class="warnings" hidden></div>
+
+  <main>
+    <!-- Journée -->
+    <section id="view-journee" class="view" role="tabpanel">
+      <div class="round-nav">
+        <button id="prevRound" class="icon-btn" aria-label="Journée précédente">‹</button>
+        <h2 id="roundTitle">Journée</h2>
+        <button id="nextRound" class="icon-btn" aria-label="Journée suivante">›</button>
+      </div>
+      <p id="roundNote" class="muted center"></p>
+      <ol id="matchList" class="match-list"></ol>
+    </section>
+
+    <!-- Classement -->
+    <section id="view-classement" class="view" role="tabpanel" hidden>
+      <h2>Classement actuel</h2>
+      <p class="muted">Calculé à partir des résultats : victoire 4 pts, nul 2, bonus offensif (3 essais de plus) et défensif (défaite de 5 pts ou moins).</p>
+      <div class="table-wrap"><table id="standings" class="data"></table></div>
+      <ul class="legend">
+        <li><span class="zone z-semi"></span>Demi-finale directe</li>
+        <li><span class="zone z-barrage"></span>Barrages</li>
+        <li><span class="zone z-access"></span>Match d'accession</li>
+        <li><span class="zone z-releg"></span>Relégation</li>
+      </ul>
+    </section>
+
+    <!-- Projection -->
+    <section id="view-projection" class="view" role="tabpanel" hidden>
+      <h2>Projection de fin de saison</h2>
+      <p id="projNote" class="muted"></p>
+      <div class="table-wrap"><table id="projection" class="data"></table></div>
+    </section>
+
+    <!-- Match libre -->
+    <section id="view-match" class="view" role="tabpanel" hidden>
+      <h2>Match au choix</h2>
+      <form id="matchForm" class="match-form">
+        <label>Domicile<select id="homeSel"></select></label>
+        <button type="button" id="swapBtn" class="icon-btn" aria-label="Inverser domicile et extérieur">⇄</button>
+        <label>Extérieur<select id="awaySel"></select></label>
+        <label class="check"><input type="checkbox" id="neutralChk"> Terrain neutre</label>
+      </form>
+      <div id="matchResult"></div>
+    </section>
+
+    <!-- Forces -->
+    <section id="view-forces" class="view" role="tabpanel" hidden>
+      <h2>Forces des équipes</h2>
+      <p id="forcesNote" class="muted"></p>
+      <div id="forces" class="forces"></div>
+    </section>
+  </main>
+
+  <footer class="foot muted">
+    <p id="footSource"></p>
+    <button id="refreshBtn" class="link-btn">Recharger les données</button>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

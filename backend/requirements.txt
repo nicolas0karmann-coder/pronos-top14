@@ -1,0 +1,5 @@
+fastapi==0.142.2
+uvicorn==0.53.0
+numpy==2.5.3
+scipy==1.18.1
+requests==2.34.2
