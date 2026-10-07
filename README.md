@@ -73,8 +73,12 @@ Les réglages (demi-vie, rétrécissement) ont été choisis sur ce même backte
 
 ## Limites connues
 
-- **Saison 2025-26 incomplète** : la source s'arrête mi-février 2026 (112 matchs sur 187). La forme de fin de saison dernière manque donc, ce qui pèse surtout sur les premières journées de 2026-27. L'app l'affiche en bandeau.
-- **Saisons absentes de la source** : 2016-17, 2019-20 et 2020-21 (Covid). L'historique détaillé (essais) commence en 2014-15.
+- **Saison 2025-26 complétée** : la source principale s'arrête mi-février 2026 (112 matchs sur 182). Les 70 matchs manquants viennent de la grille de résultats de Wikipédia, stockée dans `backend/app/supplements/top14-2025-2026.json`. Pour les vérifier :
+  - la grille concorde à 100 % avec les 112 matchs que la source connaît ;
+  - le classement recalculé retrouve les points officiels de 11 équipes sur 14.
+
+  La grille ne donne pas les essais : ils sont reconstitués (décomposition la plus probable de chaque score), avec la contrainte de retomber exactement sur les totaux officiels d'essais marqués et encaissés de chaque équipe. Les bonus offensifs retombent eux aussi sur les chiffres officiels, à une unité près. Les dates des journées 18 à 26 étant inconnues, ces matchs sont datés du 18 avril 2026 ; ils servent à l'entraînement mais pas au backtest. Les phases finales 2025-26 ne sont pas incluses. Effet mesuré sur les 35 matchs joués de 2026-27 : log-loss de 0,492 à 0,482. Si la source principale se complète un jour, elle reprend automatiquement la priorité.
+- **Saisons absentes** : 2016-17, 2019-20 et 2020-21 (Covid). L'historique détaillé (essais) commence en 2014-15.
 - **Biais résiduel** : en backtest, l'équipe qui reçoit marque en moyenne 1,2 point de plus que prévu. Les victoires à domicile entre 60 et 80 % de probabilité prévue arrivent en réalité un peu plus souvent (77 % observé). Les bonus défensifs sont sous-estimés (12 % prévu contre 16 % observé).
 - **Phases finales** : la projection s'arrête à la fin de la saison régulière. Les barrages, demi-finales et finale ne sont pas simulés, mais l'onglet « Match au choix » permet de pronostiquer une affiche sur terrain neutre.
 - **Départage au classement** : points, puis différence de points, puis essais. Le règlement officiel commence par les confrontations directes ; l'ordre peut donc différer en cas d'égalité de points.

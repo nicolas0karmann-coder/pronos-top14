@@ -158,13 +158,21 @@ def statut():
     ds = state.ds
     played = [m for m in ds.matches if m.played]
     warnings = []
-    if 2025 in {m.season for m in ds.matches}:
-        s25 = [m for m in ds.season(2025) if m.played]
-        if len(s25) < 182:
+    infos = []
+    for year, n in sorted(ds.supplemented.items()):
+        infos.append(
+            f"Saison {data_mod.season_label(year)} : {n} matchs absents ou incomplets dans la source principale ont été "
+            "complétés depuis la grille de résultats de Wikipédia. Leurs essais sont reconstitués à partir "
+            "du score et des totaux officiels de la saison."
+        )
+    for year in {m.season for m in ds.matches}:
+        if year >= state.season:
+            continue
+        n_league = sum(1 for m in ds.season(year) if m.played and not m.knockout)
+        if year >= 2021 and n_league < 182:
             warnings.append(
-                f"Saison 2025-26 incomplète dans la source ({len(s25)} matchs sur 187) : "
-                "la fin de saison dernière manque, ce qui rend la forme récente moins précise "
-                "en début de saison."
+                f"Saison {data_mod.season_label(year)} incomplète ({n_league} matchs sur 182) : "
+                "la forme récente est moins précise."
             )
     if ds.missing_seasons:
         warnings.append("Saisons non téléchargées : " + ", ".join(map(str, ds.missing_seasons)))
@@ -179,7 +187,8 @@ def statut():
         "home_advantage_points": m.global_home_advantage_points(),
         "conversion_rate": round(m.conv_rate, 3),
         "warnings": warnings,
-        "source": "github.com/transientlunatic/Rugby-Data (licence MIT)",
+        "infos": infos,
+        "source": "github.com/transientlunatic/Rugby-Data (licence MIT), complétée par Wikipédia",
     }
 
 

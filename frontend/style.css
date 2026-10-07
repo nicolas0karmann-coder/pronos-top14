@@ -202,7 +202,7 @@ h3 { font-size: 1.3rem; margin: 1.75rem 0 .5rem; }
 .tag { font-family: var(--text); font-weight: 600; font-size: .7rem; color: var(--muted); border: 1px solid var(--rule); border-radius: 3px; padding: 0 .3rem; vertical-align: 3px; margin-left: .3rem; }
 
 .foot { max-width: 1040px; margin: 0 auto; padding: 0 1rem 2rem; font-size: .85rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
-.foot p { margin: 0; }
+.foot p { margin: 0; max-width: 75ch; }
 .link-btn { background: none; border: 0; color: var(--home); cursor: pointer; text-decoration: underline; padding: 0; }
 .error { padding: 1rem; border-left: 3px solid var(--bad); background: var(--surface); }
 .loading { color: var(--muted); padding: 2rem 0; text-align: center; }

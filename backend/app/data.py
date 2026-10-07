@@ -93,6 +93,10 @@ class Match:
     # nombre d'essais même quand le détail est incomplet (pour les bonus)
     home_tries_any: int | None = None
     away_tries_any: int | None = None
+    # match issu d'un complément (cf. app/supplements) : essais reconstitués,
+    # date éventuellement approximative
+    reconstructed: bool = False
+    date_approx: bool = False
     stadium: str | None = None
 
     @property
@@ -116,6 +120,8 @@ class Match:
             "away_tries": self.away_tries_any,
             "knockout": self.knockout,
             "stadium": self.stadium,
+            "reconstructed": self.reconstructed,
+            "date_approx": self.date_approx,
         }
 
 
@@ -237,7 +243,7 @@ def parse_season(start_year: int, raw: list) -> list[Match]:
         x.neutral = True
 
     # numéro de journée pour les anciennes saisons : on l'infère par blocs de 7
-    if not has_round_type or any(x.round is None for x in out):
+    if not has_round_type:
         league = [x for x in out if not x.knockout]
         for i, x in enumerate(league):
             x.round = i // 7 + 1
@@ -249,6 +255,7 @@ class Dataset:
     matches: list[Match] = field(default_factory=list)
     loaded_at: datetime | None = None
     missing_seasons: list[int] = field(default_factory=list)
+    supplemented: dict[int, int] = field(default_factory=dict)
 
     def season(self, start_year: int) -> list[Match]:
         return [m for m in self.matches if m.season == start_year]
@@ -259,6 +266,45 @@ class Dataset:
     def teams(self, start_year: int) -> list[str]:
         s = self.season(start_year)
         return sorted({m.home for m in s} | {m.away for m in s})
+
+
+SUPPLEMENTS_DIR = Path(__file__).resolve().parent / "supplements"
+
+
+def apply_supplement(matches: list[Match], start_year: int) -> int:
+    """Complète une saison avec les matchs d'un fichier de app/supplements.
+    La source garde la priorité : on ne remplit que ce qui manque.
+    Renvoie le nombre de matchs ajoutés ou complétés."""
+    path = SUPPLEMENTS_DIR / f"top14-{start_year}-{start_year + 1}.json"
+    if not path.exists():
+        return 0
+    sup = json.loads(path.read_text(encoding="utf-8"))
+    by_pair = {(m.home, m.away): m for m in matches if not m.knockout}
+    used = 0
+    for s in sup["matches"]:
+        m = by_pair.get((s["home"], s["away"]))
+        if m is None:
+            m = Match(
+                season=start_year,
+                date=datetime.fromisoformat(s["date"].replace("Z", "+00:00")),
+                round=s.get("round"), home=s["home"], away=s["away"],
+                knockout=False, neutral=False,
+                reconstructed=True, date_approx=s.get("date_approx", False),
+            )
+            matches.append(m)
+        elif m.played and m.has_detail:
+            continue  # la source est complète pour ce match
+        else:
+            m.reconstructed = True
+        if m.home_score is None:
+            m.home_score, m.away_score = s["home_score"], s["away_score"]
+        if m.home_tries is None or m.away_tries is None:
+            m.home_tries, m.home_conv, m.home_kicks = s["home_tries"], s["home_conv"], s["home_kicks"]
+            m.away_tries, m.away_conv, m.away_kicks = s["away_tries"], s["away_conv"], s["away_kicks"]
+        if m.home_tries_any is None or m.away_tries_any is None:
+            m.home_tries_any, m.away_tries_any = s["home_tries"], s["away_tries"]
+        used += 1
+    return used
 
 
 def load_dataset(current: int | None = None) -> Dataset:
@@ -273,6 +319,10 @@ def load_dataset(current: int | None = None) -> Dataset:
         if raw is None:
             ds.missing_seasons.append(year)
             continue
-        ds.matches.extend(parse_season(year, raw))
+        season = parse_season(year, raw)
+        n = apply_supplement(season, year)
+        if n:
+            ds.supplemented[year] = n
+        ds.matches.extend(season)
     ds.matches.sort(key=lambda m: m.date)
     return ds

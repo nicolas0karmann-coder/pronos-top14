@@ -76,3 +76,16 @@ def test_erreurs():
 def test_index():
     r = client.get("/")
     assert r.status_code == 200 and "Pronos Top 14" in r.text
+
+
+def test_complement_2025_26(ds):
+    """La saison 2025-26 complétée doit compter ses 182 matchs, et le classement
+    recalculé doit retrouver les points officiels (hors Toulouse, Montpellier
+    et Lyon : sanction ou bonus incertain, cf. README)."""
+    s = [m for m in ds.season(2025) if m.played and not m.knockout]
+    assert len(s) == 182
+    official = {"Stade Français": 79, "Pau": 78, "Racing 92": 74, "La Rochelle": 72, "Clermont": 71,
+                "Bordeaux-Bègles": 70, "Toulon": 59, "Castres": 55, "Bayonne": 51, "Perpignan": 29,
+                "Montauban": 7}
+    pts = {r["team"]: r["points"] for r in standings(ds.season(2025), ds.teams(2025))}
+    assert {k: pts[k] for k in official} == official

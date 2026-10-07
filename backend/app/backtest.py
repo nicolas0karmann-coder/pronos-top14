@@ -27,7 +27,8 @@ def outcome(m):
 def rounds_of(ds, season):
     by_round = defaultdict(list)
     for m in ds.season(season):
-        if m.played and not m.knockout:
+        # les matchs à date approximative servent à l'entraînement, pas au test
+        if m.played and not m.knockout and not m.date_approx:
             by_round[m.round].append(m)
     return [by_round[r] for r in sorted(by_round)]
 
